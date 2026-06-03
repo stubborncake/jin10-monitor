@@ -1,0 +1,7 @@
+.env
+config.yaml
+*.db
+*.db-shm
+*.db-wal
+monitor.log
+__pycache__/

@@ -1,0 +1,39 @@
+bark:
+  device_key: "YOUR_BARK_DEVICE_KEY"  # Bark App 提供的 24 位 key
+  base_url: "https://api.day.app"     # 自建 Bark 服务可改此地址
+
+detection:
+  poll_interval_seconds: 90           # 轮询间隔（秒）
+  target_people:                      # 监听的目标人物
+    - "黄仁勋"
+    - "特朗普"
+    - "Jensen Huang"
+    - "Trump"
+  bullish_keywords:                   # 看多/推荐信号词
+    - "看多"
+    - "看好"
+    - "推荐"
+    - "买入"
+    - "增持"
+    - "强势推荐"
+    - "强烈看好"
+    - "目标价上调"
+    - "评级上调"
+    - "喊单"
+    - "力挺"
+    - "押注"
+    - "唱多"
+    - "bullish"
+    - "buy"
+    - "overweight"
+    - "upgrade"
+
+ai:
+  enabled: true                        # 是否启用 AI 精判
+  provider: "deepseek"                 # deepseek（推荐，性价比高）
+  model: "deepseek-chat"               # deepseek-chat 或 deepseek-reasoner
+  min_confidence: 0.7                  # 低于此置信度的不推送
+
+log:
+  level: "INFO"
+  file: "monitor.log"
