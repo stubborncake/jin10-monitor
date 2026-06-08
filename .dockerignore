@@ -1,0 +1,14 @@
+.git
+__pycache__
+*.pyc
+*.db
+*.db-shm
+*.db-wal
+monitor.log
+.env
+config.yaml
+.gitignore
+README.md
+LICENSE
+Dockerfile
+docker-compose.yml
