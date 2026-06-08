@@ -1,17 +1,21 @@
 """金十数据快讯拉取模块。
 
 直接调用金十数据 HTTP API 获取实时快讯。
+所有时间均为北京时间（UTC+8），与金十官网一致。
 """
 
 import hashlib
 import logging
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import httpx
 
 logger = logging.getLogger(__name__)
+
+# 北京时间
+_BJT = timezone(timedelta(hours=8))
 
 # 金十快讯 API
 FLASH_API_URL = "https://flash-api.jin10.com/get_flash_list"
@@ -49,8 +53,9 @@ def fetch_news(
         快讯列表，每条为 dict: {"id": str, "content": str, "time": str}
         若多次重试均失败则返回空列表。
     """
-    # 用当前 UTC 时间作为 max_time，获取最近快讯
-    max_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    # 用当前北京时间作为 max_time，获取最近快讯
+    # 金十 API 使用北京时间，若传 UTC 时间会拉到 8 小时前的旧闻
+    max_time = datetime.now(_BJT).strftime("%Y-%m-%d %H:%M:%S")
     params = {
         "channel": channel,
         "max_time": max_time,

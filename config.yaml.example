@@ -4,6 +4,7 @@ bark:
 
 detection:
   poll_interval_seconds: 90           # 轮询间隔（秒）
+  channel: "-8200"                    # 金十快讯频道ID（-8200=全部快讯）
   target_people:                      # 监听的目标人物
     - "黄仁勋"
     - "特朗普"

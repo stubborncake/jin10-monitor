@@ -70,6 +70,9 @@ def setup_logging(cfg: dict, quiet: bool = False) -> None:
 class Dashboard:
     """Rich 终端仪表盘。"""
 
+    # 每 2 小时清屏一次
+    CLEAR_INTERVAL_SECONDS = 2 * 3600
+
     def __init__(self):
         self.stats = {
             "fetched": 0,
@@ -81,8 +84,11 @@ class Dashboard:
             "errors": 0,
         }
         self.start_time = datetime.now()
+        self.last_clear_time = datetime.now()
+        self.recent_news: list[dict] = []  # 最近抓取到的快讯
 
-    def update(self, fetched=0, keyword_hits=0, ai_confirmed=0, sent=0, error=False) -> None:
+    def update(self, fetched=0, keyword_hits=0, ai_confirmed=0, sent=0,
+               error=False, news_list: list[dict] | None = None) -> None:
         self.stats["fetched"] = fetched
         self.stats["keyword_hits"] = keyword_hits
         self.stats["ai_confirmed"] = ai_confirmed
@@ -90,6 +96,17 @@ class Dashboard:
         self.stats["total_sent"] += sent
         if error:
             self.stats["errors"] += 1
+        if news_list:
+            self.recent_news = news_list
+
+    def _should_clear(self) -> bool:
+        """判断是否需要清屏（每 2 小时）。"""
+        elapsed = (datetime.now() - self.last_clear_time).total_seconds()
+        return elapsed >= self.CLEAR_INTERVAL_SECONDS
+
+    def do_clear(self) -> None:
+        """执行清屏并重置计时器。"""
+        self.last_clear_time = datetime.now()
 
     def render(self) -> str:
         """生成仪表盘文本。"""
@@ -107,6 +124,22 @@ class Dashboard:
             f"║  累计推送: {s['total_sent']} 次  错误: {s['errors']}".ljust(46) + "║",
             "╠══════════════════════════════════════════╣",
         ]
+
+        # 最近抓取到的快讯（最新 5 条）
+        if self.recent_news:
+            lines.append("║  📡 最新快讯:".ljust(46) + "║")
+            for news in self.recent_news[:5]:
+                time_str = news.get("time", "")[-8:-3] if news.get("time") else "??:??"
+                content = news.get("content", "")
+                # 截断过长的内容，留出边框空间（46 - 7 前缀 ≈ 39 字符）
+                if len(content) > 38:
+                    content = content[:38] + "…"
+                entry = f"  [{time_str}] {content}"
+                lines.append(f"║{entry}".ljust(46) + "║")
+        else:
+            lines.append("║  📡 (暂无快讯数据)".ljust(46) + "║")
+
+        lines.append("╠══════════════════════════════════════════╣")
 
         # 最近推送记录
         recent = get_recent_notifications(limit=5)
@@ -130,6 +163,7 @@ def run_loop(cfg: dict, quiet: bool = False) -> None:
     ai_cfg = cfg["ai"]
 
     interval = det_cfg.get("poll_interval_seconds", 90)
+    channel = det_cfg.get("channel", "-8200")
     target_people = det_cfg.get("target_people", ["黄仁勋", "特朗普"])
     bullish_keywords = det_cfg.get("bullish_keywords", [])
     ai_enabled = ai_cfg.get("enabled", True)
@@ -148,7 +182,7 @@ def run_loop(cfg: dict, quiet: bool = False) -> None:
     while True:
         try:
             # 1. 拉取
-            news_list = fetch_news()
+            news_list = fetch_news(channel=channel)
             fetched = len(news_list)
             keyword_hits = 0
             ai_confirmed = 0
@@ -202,7 +236,11 @@ def run_loop(cfg: dict, quiet: bool = False) -> None:
                     keyword_hits=keyword_hits,
                     ai_confirmed=ai_confirmed,
                     sent=sent_count,
+                    news_list=news_list,
                 )
+                # 每 2 小时清屏
+                if dash._should_clear():
+                    dash.do_clear()
                 _clear_screen()
                 print(dash.render())
 
@@ -230,6 +268,7 @@ def run_test(cfg: dict) -> None:
     ai_cfg = cfg["ai"]
 
     target_people = det_cfg.get("target_people", ["黄仁勋", "特朗普"])
+    channel = det_cfg.get("channel", "-8200")
     bullish_keywords = det_cfg.get("bullish_keywords", [])
     ai_model = ai_cfg.get("model", "deepseek-chat")
     api_key = os.environ.get("DEEPSEEK_API_KEY", "")
@@ -248,12 +287,12 @@ def run_test(cfg: dict) -> None:
         print(f"   {'✅ 测试推送已发送' if ok else '❌ 推送失败，请检查 device_key'}")
 
     # 2. 拉取快讯
-    print("\n📡 拉取金十快讯...")
-    news_list = fetch_news()
+    print("\n📡 拉取金十快讯（北京时间）...")
+    news_list = fetch_news(channel=channel)
     print(f"   拉取到 {len(news_list)} 条快讯")
 
     if not news_list:
-        print("   ⚠️ 没有拉取到数据，请检查网络或 AKShare 版本")
+        print("   ⚠️ 没有拉取到数据，请检查网络连接")
         return
 
     # 3. 展示最新几条
