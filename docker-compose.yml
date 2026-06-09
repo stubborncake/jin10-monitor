@@ -10,10 +10,8 @@ services:
     volumes:
       # 挂载配置文件（修改配置无需重新构建镜像）
       - ./config.yaml:/app/config.yaml:ro
-      # 持久化 SQLite 去重数据库（容器重启不丢记录）
-      - ./jin10_monitor.db:/app/jin10_monitor.db
-      - ./jin10_monitor.db-shm:/app/jin10_monitor.db-shm
-      - ./jin10_monitor.db-wal:/app/jin10_monitor.db-wal
+      # 持久化数据目录
+      - ./data:/app/data
       # 持久化日志
       - ./monitor.log:/app/monitor.log
     healthcheck:

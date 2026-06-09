@@ -12,7 +12,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = Path(__file__).parent / "jin10_monitor.db"
+DB_PATH = Path(__file__).parent / "data" / "jin10_monitor.db"
 RETENTION_DAYS = 30
 
 CREATE_TABLE_SQL = """
