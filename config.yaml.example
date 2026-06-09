@@ -37,4 +37,4 @@ ai:
 
 log:
   level: "INFO"
-  file: "monitor.log"
+  file: "data/monitor.log"
