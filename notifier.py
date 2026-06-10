@@ -87,19 +87,26 @@ def send_test(device_key: str, base_url: str = "https://api.day.app") -> bool:
 
 def format_stock_alert(
     person: str,
-    stock: str,
-    summary: str,
+    stock_name: str,
+    stock_code: str = "",
+    full_content: str = "",
 ) -> tuple[str, str]:
     """格式化股票推荐推送的标题和正文。
 
     Args:
         person: 推荐者（黄仁勋/特朗普）。
-        stock: 被推荐的股票。
-        summary: Claude 生成的一句话摘要。
+        stock_name: 被推荐的股票中文名。
+        stock_code: 股票代码（如 QCOM.O、000001）。
+        full_content: 快讯完整原文。
 
     Returns:
         (title, body) 元组。
     """
-    title = f"⚠️ {person}看好{stock}"
-    body = summary if summary else f"{person}在最新快讯中提及{stock}，快去看看！"
+    # 标题：黄仁勋 推荐 买入 高通（QCOM.O）
+    if stock_code and stock_code not in stock_name:
+        title = f"{person} 推荐 买入 {stock_name}（{stock_code}）"
+    else:
+        title = f"{person} 推荐 买入 {stock_name}"
+    # 正文：快讯完整原文
+    body = full_content if full_content else f"{person}在最新快讯中提及{stock_name}，快去看看！"
     return title, body

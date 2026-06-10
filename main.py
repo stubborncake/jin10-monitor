@@ -218,7 +218,11 @@ def run_loop(cfg: dict, quiet: bool = False) -> None:
                     stock = verdict.get("stock_name", stocks[0] if stocks else "某股")
                     summary = verdict.get("summary", news["content"][:120])
 
-                    title, body = format_stock_alert(person, stock, summary)
+                    title, body = format_stock_alert(
+                        person, stock,
+                        stock_code=verdict.get("stock_code", "") or "",
+                        full_content=news["content"],
+                    )
                     ok = send(
                         device_key=bark_cfg["device_key"],
                         title=title,

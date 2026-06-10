@@ -135,7 +135,8 @@ OUTPUT_SCHEMA_DESC = """
   "is_bullish_recommendation": true或false,
   "speaker": "黄仁勋"或"特朗普"或"other",
   "target_person_in_news": "黄仁勋"或"特朗普"或"both"或"other",
-  "stock_name": "股票名或代码"或null,
+  "stock_name": "股票中文名如高通、英伟达"或null,
+  "stock_code": "股票代码如QCOM.O、TSLA、000001、09988.HK"或null,
   "confidence": 0.0到1.0之间的数字,
   "summary": "一句话中文摘要"
 }
@@ -146,7 +147,15 @@ SYSTEM_PROMPT = f"""你是一个金融快讯语义分析器。分析输入的财
 ## 触发条件（必须同时满足）
 1. 快讯中明确在看多/推荐/利好某只股票（is_bullish_recommendation=true）
 2. 推荐动作的**发言者（speaker）**必须是黄仁勋或特朗普**本人**
-3. 能识别出具体被推荐的股票名称或代码
+3. 能识别出具体被推荐的股票名称和代码
+
+## stock_name 和 stock_code 字段
+- stock_name：股票中文名，如"高通"、"英伟达"、"特斯拉"
+- stock_code：从原文提取的股票代码，优先取带交易所后缀的格式
+  - 美股：QCOM.O、TSLA.O、AAPL.O、NVDA.O（注意原文如 QCOM.O 就原样保留）
+  - A股：600519、000001
+  - 港股：09988.HK、00700.HK
+  - 若原文未出现代码则为 null
 
 ## 关键：speaker 归因
 - "黄仁勋表示英伟达股价还能翻倍" → speaker="黄仁勋" ✅

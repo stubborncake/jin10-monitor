@@ -12,6 +12,12 @@ services:
       - ./config.yaml:/app/config.yaml:ro
       # 持久化数据目录（数据库 + 日志统一放这里）
       - ./data:/app/data
+      # 挂载源码文件（修改代码无需重新构建镜像）
+      - ./main.py:/app/main.py:ro
+      - ./notifier.py:/app/notifier.py:ro
+      - ./detector.py:/app/detector.py:ro
+      - ./fetcher.py:/app/fetcher.py:ro
+      - ./storage.py:/app/storage.py:ro
     healthcheck:
       test: ["CMD-SHELL", "test -f /app/data/monitor.log && test \"$$(stat -c %Y /app/data/monitor.log)\" -gt \"$$(date -d '3 minutes ago' +%s)\""]
       interval: 60s
